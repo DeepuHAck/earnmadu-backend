@@ -8,6 +8,9 @@ const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 
+// Load environment variables
+dotenv.config({ path: './.env' });
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -19,7 +22,7 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 
@@ -64,17 +67,14 @@ process.on('uncaughtException', err => {
     process.exit(1);
 });
 
-dotenv.config({ path: './.env' });
-
-const DB = process.env.DATABASE.replace(
-    '<PASSWORD>',
-    process.env.DATABASE_PASSWORD
-);
-
-mongoose.connect(DB, {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(() => console.log('DB connection successful!'));
+}).then(() => console.log('DB connection successful!'))
+  .catch(err => {
+    console.error('DB connection error:', err);
+    process.exit(1);
+  });
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
