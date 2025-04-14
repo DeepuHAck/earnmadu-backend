@@ -31,15 +31,36 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({
   origin: [
+    'https://earnmadu-frontend.vercel.app',
+    'https://earnmadu-frontend-git-main-deepumons-projects.vercel.app',
     'https://earnmadu-frontend-frontend-7igk-df8iz71ks-deepumons-projects.vercel.app',
     'https://earnmadu-frontend-frontend-7igk.vercel.app',
-    'http://localhost:3000'  // Keep local development URL
+    'http://localhost:3000',  // Keep local development URL
+    'http://localhost:5173'   // Vite dev server
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Set-Cookie']
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400 // 24 hours in seconds
 }));
+
+// Add CORS error handling
+app.use((err, req, res, next) => {
+  if (err.name === 'CORSError') {
+    console.error('CORS Error:', {
+      origin: req.headers.origin,
+      method: req.method,
+      path: req.path,
+      error: err.message
+    });
+    return res.status(403).json({
+      status: 'error',
+      message: 'CORS error: ' + err.message
+    });
+  }
+  next(err);
+});
 
 // Rate limiting
 const limiter = rateLimit({
