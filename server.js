@@ -24,6 +24,9 @@ const earningRoutes = require('./routes/earningRoutes');
 
 const app = express();
 
+// Trust proxy - Required for rate limiting behind reverse proxies (like Render)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
@@ -33,9 +36,12 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: process.env.RATE_LIMIT_WINDOW_MS,
-    max: process.env.RATE_LIMIT_MAX_REQUESTS,
-    message: 'Too many requests from this IP, please try again later.'
+    windowMs: process.env.RATE_LIMIT_WINDOW_MS || 900000, // 15 minutes
+    max: process.env.RATE_LIMIT_MAX_REQUESTS || 100,
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+    trustProxy: true
 });
 app.use('/api', limiter);
 
