@@ -30,10 +30,8 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 
-// Enable pre-flight requests for all routes
-app.options('*', cors());
-
-app.use(cors({
+// CORS configuration
+const corsOptions = {
   origin: function(origin, callback) {
     const allowedOrigins = [
       'https://earnmadu-frontend.vercel.app',
@@ -45,30 +43,41 @@ app.use(cors({
     ];
     
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('Request with no origin');
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) === -1) {
       console.log('Rejected Origin:', origin);
-      return callback(new Error('Not allowed by CORS'));
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
     
     console.log('Accepted Origin:', origin);
-    return callback(null, true);
+    return callback(null, origin);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Set-Cookie'],
   maxAge: 86400
-}));
+};
 
-// Add CORS error handling
+// Enable pre-flight requests for all routes
+app.options('*', cors(corsOptions));
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Add detailed CORS error handling
 app.use((err, req, res, next) => {
-  if (err.name === 'CORSError') {
+  if (err.message.includes('CORS')) {
     console.error('CORS Error:', {
       origin: req.headers.origin,
       method: req.method,
       path: req.path,
+      headers: req.headers,
       error: err.message
     });
     return res.status(403).json({
