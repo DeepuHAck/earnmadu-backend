@@ -30,8 +30,15 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
+  origin: [
+    'https://earnmadu-frontend-frontend-7igk-df8iz71ks-deepumons-projects.vercel.app',
+    'https://earnmadu-frontend-frontend-7igk.vercel.app',
+    'http://localhost:3000'  // Keep local development URL
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // Rate limiting
