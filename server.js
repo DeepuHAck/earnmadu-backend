@@ -67,10 +67,8 @@ process.on('uncaughtException', err => {
     process.exit(1);
 });
 
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => console.log('DB connection successful!'))
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('DB connection successful!'))
   .catch(err => {
     console.error('DB connection error:', err);
     process.exit(1);

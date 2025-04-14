@@ -4,7 +4,8 @@ const videoSchema = new mongoose.Schema({
     youtubeId: {
         type: String,
         required: [true, 'Video must have a YouTube ID'],
-        unique: true
+        unique: true,
+        index: true
     },
     title: {
         type: String,
@@ -63,7 +64,6 @@ const videoSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-videoSchema.index({ youtubeId: 1 });
 videoSchema.index({ status: 1 });
 videoSchema.index({ category: 1 });
 
