@@ -11,6 +11,11 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config({ path: './.env' });
 
+// Debug logging for MongoDB connection
+console.log('Attempting to connect to MongoDB...');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('MongoDB URI exists:', !!process.env.MONGODB_URI);
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -67,12 +72,23 @@ process.on('uncaughtException', err => {
     process.exit(1);
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('DB connection successful!'))
-  .catch(err => {
-    console.error('DB connection error:', err);
-    process.exit(1);
+mongoose.connect(process.env.MONGODB_URI, {
+  retryWrites: true,
+  w: 'majority',
+  directConnection: false,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+})
+.then(() => console.log('DB connection successful!'))
+.catch(err => {
+  console.error('DB connection error details:', {
+    name: err.name,
+    message: err.message,
+    code: err.code,
+    reason: err.reason
   });
+  process.exit(1);
+});
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
