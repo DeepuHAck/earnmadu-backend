@@ -29,20 +29,37 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
+
+// Enable pre-flight requests for all routes
+app.options('*', cors());
+
 app.use(cors({
-  origin: [
-    'https://earnmadu-frontend.vercel.app',
-    'https://earnmadu-frontend-git-main-deepumons-projects.vercel.app',
-    'https://earnmadu-frontend-frontend-7igk-df8iz71ks-deepumons-projects.vercel.app',
-    'https://earnmadu-frontend-frontend-7igk.vercel.app',
-    'http://localhost:3000',  // Keep local development URL
-    'http://localhost:5173'   // Vite dev server
-  ],
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://earnmadu-frontend.vercel.app',
+      'https://earnmadu-frontend-git-main-deepumons-projects.vercel.app',
+      'https://earnmadu-frontend-frontend-7igk-df8iz71ks-deepumons-projects.vercel.app',
+      'https://earnmadu-frontend-frontend-7igk.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:5173'
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Rejected Origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+    
+    console.log('Accepted Origin:', origin);
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Set-Cookie'],
-  maxAge: 86400 // 24 hours in seconds
+  maxAge: 86400
 }));
 
 // Add CORS error handling
